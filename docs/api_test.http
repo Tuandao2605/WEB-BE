@@ -1,0 +1,206 @@
+@baseUrl = http://localhost:8080/api/v1
+@accessToken = {{login.response.body.token}}
+
+##################################
+### HEALTH CHECK
+##################################
+GET {{baseUrl}}/health
+Content-Type: application/json
+Accept: application/json
+
+
+##################################
+### AUTH
+##################################
+
+### Register
+POST http://localhost:8080/api/v1/auth/register
+Content-Type: application/json
+Accept: application/json
+
+{
+  "username": "testuser",
+  "email": "testuser@gmail.com",
+  "password": "123456"
+}
+###
+
+### Login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "testuser@gmail.com",
+  "password": "123456"
+}
+
+##################################
+### USER PROFILE (AUTH REQUIRED)
+##################################
+
+### Get profile
+GET {{baseUrl}}/me
+Authorization: Bearer {{accessToken}}
+
+###
+
+### Update profile
+PUT {{baseUrl}}/me
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "username": "testuser_updated"
+}
+
+##################################
+### STORIES (PUBLIC)
+##################################
+
+### Get all stories
+GET {{baseUrl}}/stories
+
+###
+
+### Search stories
+GET {{baseUrl}}/stories/search?q=fantasy
+
+###
+
+### Get story by slug
+GET {{baseUrl}}/stories/one-piece
+
+###
+
+### Get chapters by story
+GET {{baseUrl}}/stories/one-piece/chapters
+
+###
+
+### Get specific chapter
+GET {{baseUrl}}/stories/one-piece/chapters/1
+
+##################################
+### STORIES (AUTH REQUIRED)
+##################################
+
+### Create story
+POST {{baseUrl}}/stories
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "title": "One Piece",
+  "slug": "one-piece",
+  "description": "Pirate adventure story",
+  "category_id": 1
+}
+
+###
+
+### Update story
+PUT {{baseUrl}}/stories/one-piece
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "description": "Updated description"
+}
+
+###
+
+### Delete story
+DELETE {{baseUrl}}/stories/one-piece
+Authorization: Bearer {{accessToken}}
+
+##################################
+### CHAPTER MANAGEMENT
+##################################
+
+### Create chapter
+POST {{baseUrl}}/stories/one-piece/chapters
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "chapter_num": 1,
+  "title": "Romance Dawn",
+  "content": "Chapter content here"
+}
+
+###
+
+### Update chapter
+PUT {{baseUrl}}/stories/one-piece/chapters/1
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "title": "Romance Dawn Updated",
+  "content": "Updated content"
+}
+
+###
+
+### Delete chapter
+DELETE {{baseUrl}}/stories/one-piece/chapters/1
+Authorization: Bearer {{accessToken}}
+
+##################################
+### READING HISTORY
+##################################
+
+### Get reading history
+GET {{baseUrl}}/history
+Authorization: Bearer {{accessToken}}
+
+###
+
+### Update reading history
+POST {{baseUrl}}/history/1
+Authorization: Bearer {{accessToken}}
+
+###
+
+### Delete reading history
+DELETE {{baseUrl}}/history/1
+Authorization: Bearer {{accessToken}}
+
+##################################
+### CATEGORIES (PUBLIC)
+##################################
+
+### Get all categories
+GET {{baseUrl}}/categories
+
+###
+
+### Get stories by category slug
+GET {{baseUrl}}/categories/fantasy/stories
+
+##################################
+### ADMIN (ROLE = admin)
+##################################
+
+### Get all users
+GET {{baseUrl}}/admin/users
+Authorization: Bearer {{accessToken}}
+
+###
+
+### Create category
+POST {{baseUrl}}/admin/categories
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "name": "Fantasy",
+  "slug": "fantasy"
+}
+
+###
+
+### Publish story
+PUT {{baseUrl}}/admin/stories/1/publish
+Authorization: Bearer {{accessToken}}
