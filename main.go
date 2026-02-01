@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 
-	"github.com/gin-gonic/gin"
 	"web-be/config"
 	"web-be/db"
 	"web-be/handler"
@@ -11,6 +10,8 @@ import (
 	"web-be/router"
 	"web-be/service"
 	"web-be/utils"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -31,6 +32,13 @@ func main() {
 	defer database.Close()
 
 	log.Println("Connected to database successfully")
+
+	// 🔥 RUN MIGRATIONS
+	if err := db.RunMigrations(database, "db/migrations"); err != nil {
+		log.Fatalf("Database migration failed: %v", err)
+	}
+
+	log.Println("Database migrated successfully")
 
 	// Initialize JWT Manager
 	jwtManager := utils.NewJWTManager(cfg.JWTSecret, cfg.JWTExpiryHours)
@@ -57,8 +65,8 @@ func main() {
 	engine := r.Setup()
 
 	// Start server
-	log.Printf("🚀 Server starting on port %s", cfg.Port)
-	log.Printf("📚 Story Reader API ready at http://localhost:%s/api/v1", cfg.Port)
+	log.Printf("Server starting on port %s", cfg.Port)
+	log.Printf("Story Reader API ready at http://localhost:%s/api/v1", cfg.Port)
 
 	if err := engine.Run(":" + cfg.Port); err != nil {
 		log.Fatalf("Failed to start server: %v", err)

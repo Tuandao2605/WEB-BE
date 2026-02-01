@@ -107,6 +107,7 @@ func (r *Router) Setup() *gin.Engine {
 			admin.POST("/categories", r.storyHandler.CreateCategory)
 			admin.PUT("/stories/:id/publish", r.storyHandler.Publish)
 		}
+
 	}
 
 	return r.engine

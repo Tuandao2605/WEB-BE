@@ -21,7 +21,8 @@ Accept: application/json
 {
   "username": "testuser",
   "email": "testuser@gmail.com",
-  "password": "123456"
+  "password": "123456",
+  "fullname": "tuasdfkasdf"
 }
 ###
 
