@@ -17,7 +17,7 @@ func RunMigrations(db *sqlx.DB, migrationsDir string) error {
 		return fmt.Errorf("failed to resolve absolute path: %w", err)
 	}
 
-	fmt.Printf("📂 Running migrations from: %s\n", absDir)
+	fmt.Printf("Running migrations from: %s\n", absDir)
 
 	var files []string
 
@@ -39,7 +39,7 @@ func RunMigrations(db *sqlx.DB, migrationsDir string) error {
 	sort.Strings(files)
 
 	for _, file := range files {
-		fmt.Printf("📄 Running migration: %s\n", filepath.Base(file))
+		fmt.Printf("Running migration: %s\n", filepath.Base(file))
 
 		content, err := os.ReadFile(file)
 		if err != nil {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"log/slog"
 
 	"web-be/config"
 	"web-be/db"
@@ -21,6 +22,10 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
+	// Initialize structured logger
+	utils.InitLogger(cfg.GinMode)
+	slog.Info("config loaded successfully")
+
 	// Set Gin mode
 	gin.SetMode(cfg.GinMode)
 
@@ -31,14 +36,14 @@ func main() {
 	}
 	defer database.Close()
 
-	log.Println("Connected to database successfully")
+	slog.Info("connected to database successfully")
 
 	// 🔥 RUN MIGRATIONS
 	if err := db.RunMigrations(database, "db/migrations"); err != nil {
 		log.Fatalf("Database migration failed: %v", err)
 	}
 
-	log.Println("Database migrated successfully")
+	slog.Info("database migrated successfully")
 
 	// Initialize JWT Manager
 	jwtManager := utils.NewJWTManager(cfg.JWTSecret, cfg.JWTExpiryHours)
@@ -49,26 +54,30 @@ func main() {
 	storyRepo := repository.NewStoryRepository(database)
 	chapterRepo := repository.NewChapterRepository(database)
 	historyRepo := repository.NewReadingHistoryRepository(database)
+	bookmarkRepo := repository.NewBookmarkRepository(database)
 
 	// Initialize services
 	authService := service.NewAuthService(userRepo, jwtManager)
 	storyService := service.NewStoryService(storyRepo, categoryRepo, historyRepo)
 	chapterService := service.NewChapterService(chapterRepo, storyRepo)
+	bookmarkService := service.NewBookmarkService(bookmarkRepo, storyRepo)
 
 	// Initialize handlers
 	authHandler := handler.NewAuthHandler(authService)
 	storyHandler := handler.NewStoryHandler(storyService)
 	chapterHandler := handler.NewChapterHandler(chapterService)
+	bookmarkHandler := handler.NewBookmarkHandler(bookmarkService)
 
 	// Setup router
-	r := router.NewRouter(jwtManager, authHandler, storyHandler, chapterHandler)
+	r := router.NewRouter(jwtManager, authHandler, storyHandler, chapterHandler, bookmarkHandler)
 	engine := r.Setup()
 
 	// Start server
-	log.Printf("Server starting on port %s", cfg.Port)
-	log.Printf("Story Reader API ready at http://localhost:%s/api/v1", cfg.Port)
+	slog.Info("server starting", "port", cfg.Port)
+	slog.Info("Story Reader API ready", "url", "http://localhost:"+cfg.Port+"/api/v1")
 
 	if err := engine.Run(":" + cfg.Port); err != nil {
+		slog.Error("failed to start server", "error", err)
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }

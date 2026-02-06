@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"log/slog"
 
 	"web-be/dto"
 	"web-be/models"
@@ -34,6 +35,7 @@ func (s *StoryService) Create(ctx context.Context, authorID int, req *dto.Create
 	// Check if slug exists
 	existing, _ := s.storyRepo.GetBySlug(ctx, slug)
 	if existing != nil {
+		slog.Warn("story creation failed: duplicate slug", "slug", slug)
 		return nil, errors.New("a story with this title already exists")
 	}
 
@@ -54,6 +56,7 @@ func (s *StoryService) Create(ctx context.Context, authorID int, req *dto.Create
 
 	err := s.storyRepo.Create(ctx, story)
 	if err != nil {
+		slog.Error("failed to create story", "error", err, "title", req.Title)
 		return nil, errors.New("failed to create story")
 	}
 
@@ -69,20 +72,24 @@ func (s *StoryService) Create(ctx context.Context, authorID int, req *dto.Create
 	categories, _ := s.storyRepo.GetCategories(ctx, story.ID)
 	story.Categories = categories
 
+	slog.Info("story created", "id", story.ID, "slug", story.Slug, "author_id", authorID)
 	return story, nil
 }
 
 func (s *StoryService) GetBySlug(ctx context.Context, slug string) (*models.Story, error) {
 	story, err := s.storyRepo.GetBySlug(ctx, slug)
 	if err != nil {
+		slog.Error("failed to get story by slug", "error", err, "slug", slug)
 		return nil, err
 	}
 	if story == nil {
+		slog.Debug("story not found", "slug", slug)
 		return nil, errors.New("story not found")
 	}
 
 	// Increment views
 	_ = s.storyRepo.IncrementViews(ctx, story.ID)
+	slog.Debug("story views incremented", "story_id", story.ID, "slug", slug)
 
 	// Load categories
 	categories, _ := s.storyRepo.GetCategories(ctx, story.ID)
@@ -201,10 +208,15 @@ func (s *StoryService) Delete(ctx context.Context, slug string, userID int, user
 	}
 
 	if userRole != "admin" && (story.AuthorID == nil || *story.AuthorID != userID) {
+		slog.Warn("unauthorized story deletion attempt", "user_id", userID, "story_id", story.ID)
 		return errors.New("you don't have permission to delete this story")
 	}
 
-	return s.storyRepo.Delete(ctx, story.ID)
+	err = s.storyRepo.Delete(ctx, story.ID)
+	if err == nil {
+		slog.Info("story deleted", "story_id", story.ID, "slug", slug, "by_user", userID)
+	}
+	return err
 }
 
 func (s *StoryService) Publish(ctx context.Context, id int, publish bool) error {

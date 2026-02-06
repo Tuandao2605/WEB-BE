@@ -9,11 +9,12 @@ import (
 )
 
 type Router struct {
-	engine         *gin.Engine
-	jwtManager     *utils.JWTManager
-	authHandler    *handler.AuthHandler
-	storyHandler   *handler.StoryHandler
-	chapterHandler *handler.ChapterHandler
+	engine          *gin.Engine
+	jwtManager      *utils.JWTManager
+	authHandler     *handler.AuthHandler
+	storyHandler    *handler.StoryHandler
+	chapterHandler  *handler.ChapterHandler
+	bookmarkHandler *handler.BookmarkHandler
 }
 
 func NewRouter(
@@ -21,13 +22,16 @@ func NewRouter(
 	authHandler *handler.AuthHandler,
 	storyHandler *handler.StoryHandler,
 	chapterHandler *handler.ChapterHandler,
+	bookmarkHandler *handler.BookmarkHandler,
+
 ) *Router {
 	return &Router{
-		engine:         gin.Default(),
-		jwtManager:     jwtManager,
-		authHandler:    authHandler,
-		storyHandler:   storyHandler,
-		chapterHandler: chapterHandler,
+		engine:          gin.Default(),
+		jwtManager:      jwtManager,
+		authHandler:     authHandler,
+		storyHandler:    storyHandler,
+		chapterHandler:  chapterHandler,
+		bookmarkHandler: bookmarkHandler,
 	}
 }
 
@@ -82,6 +86,7 @@ func (r *Router) Setup() *gin.Engine {
 			stories.GET("/:slug", r.storyHandler.GetBySlug)
 			stories.GET("/:slug/chapters", r.chapterHandler.GetByStory)
 			stories.GET("/:slug/chapters/:chapter_num", r.chapterHandler.GetChapter)
+			stories.GET("/:slug/stats", r.bookmark_handler.GetViewStats)
 
 			// Protected routes
 			storiesAuth := stories.Group("")
